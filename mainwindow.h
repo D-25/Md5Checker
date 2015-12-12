@@ -30,6 +30,8 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void on_MetodSelect_currentIndexChanged(int index);
+
 private:
     Ui::MainWindow *ui;
 

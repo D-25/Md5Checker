@@ -25,6 +25,7 @@
 
 bool aborted; // I know, this is ugly.
 int Speed = 262144;
+int MetodSelect = 0;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -32,13 +33,17 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    //populating the speeds' combobox
+    //populating the speeds' and Metod combobox
     ui->SpeedSelect->addItem("Lento");
     ui->SpeedSelect->addItem("Medio (Default)");
     ui->SpeedSelect->addItem("Veloce");
+    ui->MetodSelect->addItem("MD5");
+    ui->MetodSelect->addItem("SHA-1");
+    ui->MetodSelect->addItem("SHA-256");
 
     //setting first combobox's value (default)
     ui->SpeedSelect->setCurrentIndex(1);
+    ui->MetodSelect->setCurrentIndex(0);
 
     ui->checkingBar->setVisible(false);
     ui->abortButton->setVisible(false);
@@ -129,18 +134,34 @@ void MainWindow::on_startCheck_clicked()
     // Reached the ending of file, the checksum is showed to user.
 
     QString fileName = ui->fileSelectLocation->text();
+    QString Result;
     QFile fileSelected(fileName);
+    QCryptographicHash CheckMD5(QCryptographicHash::Md5);
+    QCryptographicHash CheckSha1(QCryptographicHash::Sha1);
+    QCryptographicHash CheckSha256(QCryptographicHash::Sha256);
 
-    int byteLoad = Speed; // TODO: more?
-
-    QCryptographicHash checkProcess(QCryptographicHash::Md5);
+    int byteLoad = Speed;
 
         fileSelected.open(QFile::ReadOnly);
         aborted = false;
         while(!fileSelected.atEnd())
         {
-            checkProcess.addData(fileSelected.read(byteLoad));
-            QCoreApplication::processEvents();
+            switch(MetodSelect) {
+            case 0:
+                CheckMD5.addData(fileSelected.read(byteLoad));
+                QCoreApplication::processEvents();
+                break;
+            case 1:
+                CheckSha1.addData(fileSelected.read(byteLoad));
+                QCoreApplication::processEvents();
+                break;
+            case 2:
+                CheckSha256.addData(fileSelected.read(byteLoad));
+                QCoreApplication::processEvents();
+                break;
+            }
+
+
             ui->checkInfo->setText(tr("Analisi dell'impronta del file selezionato in corso..."));
 
             ui->checkingBar->setVisible(true);
@@ -152,24 +173,40 @@ void MainWindow::on_startCheck_clicked()
             {
                 break; // When AbortButton is pressed, the Checksum process is killed.
             }
+            enableAll();
 
-        }
+            QByteArray md5Data;
 
-        enableAll();
+            switch(MetodSelect) {
+            case 0:
+                md5Data = CheckMD5.result();
+                break;
+            case 1:
+                md5Data = CheckSha1.result();
+                break;
+            case 2:
+                md5Data = CheckSha256.result();
+                break;
+            }
 
-        ui->checkingBar->setVisible(false);
-        ui->abortButton->setVisible(false);
-        QByteArray md5Data = checkProcess.result();
-        QString md5DataHEX = md5Data.toHex();
+            QString md5DataHEX = md5Data.toHex();
+            Result = md5DataHEX;
+         }
+            enableAll();
+            ui->checkingBar->setVisible(false);
+            ui->abortButton->setVisible(false);
+
+
+
 
 
         if (aborted == false)
         {
-            ui->checkInfo->setText(tr("MD5 del File scelto: %1").arg(md5DataHEX));
+            ui->checkInfo->setText(tr("Impronta del File scelto: %1").arg(Result));
 
             if (ui->comparationCheck->isChecked())
             {
-                comparationStart(ui->comparationString->text(), md5DataHEX); // Check between two string, one inserted by user.
+                comparationStart(ui->comparationString->text(), Result); // Check between two string, one inserted by user.
             }
         }
 
@@ -209,4 +246,23 @@ void MainWindow::on_pushButton_clicked()
 {
     SettingPage settings;
     settings.exec();
+}
+
+void MainWindow::on_MetodSelect_currentIndexChanged(int index)
+{
+    switch(index){
+    case 0:
+        MetodSelect = 0;
+         qDebug() << "MD5"; //default
+        break;
+
+    case 1:
+        MetodSelect = 1;
+         qDebug() << "SHA-1";
+        break;
+    case 2:
+        MetodSelect = 2;
+         qDebug() << "SHA-256";
+        break;
+    }
 }
