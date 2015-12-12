@@ -149,18 +149,16 @@ void MainWindow::on_startCheck_clicked()
             switch(MetodSelect) {
             case 0:
                 CheckMD5.addData(fileSelected.read(byteLoad));
-                QCoreApplication::processEvents();
                 break;
             case 1:
                 CheckSha1.addData(fileSelected.read(byteLoad));
-                QCoreApplication::processEvents();
                 break;
             case 2:
                 CheckSha256.addData(fileSelected.read(byteLoad));
-                QCoreApplication::processEvents();
                 break;
             }
 
+            QCoreApplication::processEvents();
 
             ui->checkInfo->setText(tr("Analisi dell'impronta del file selezionato in corso..."));
 
