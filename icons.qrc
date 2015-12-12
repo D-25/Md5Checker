@@ -6,5 +6,7 @@
         <file alias="flag_italy">icons/flags/italy.png</file>
         <file alias="flag_english">icons/flags/english.png</file>
         <file alias="settings_advanced">icons/32x32/advancedsettings.png</file>
+        <file alias="reset">icons/16x16/reset.png</file>
+        <file alias="flag_unknown">icons/16x16/worldwide.png</file>
     </qresource>
 </RCC>

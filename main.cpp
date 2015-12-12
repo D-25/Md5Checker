@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <QDebug>
 #include <QTranslator>
+#include <QSettings>
 
 int main(int argc, char *argv[])
 {
@@ -17,11 +18,36 @@ int main(int argc, char *argv[])
      *
      */
 
-    QTranslator language;
-    language.load(":/languages/language_" + QLocale::system().name() + ".qm");
-    a.installTranslator(&language);
+    QSettings settings("D-25" ,"MD5Checker");
 
-    qDebug() << "Language loaded: qrc://languages/language_" + QLocale::system().name() + ".qm";
+    int languageSelected = settings.value("language", 0).toInt();
+    QTranslator language;
+
+    switch (languageSelected)
+    {
+        case 1: // Italian.
+        {
+            language.load(":/languages/language_it_IT.qm");
+            a.installTranslator(&language);
+            break;
+        }
+
+        case 2: // English.
+        {
+            language.load(":/languages/language_en_EN.qm");
+            a.installTranslator(&language);
+            break;
+        }
+
+        default: // Detected by system settings or unknown value.
+        {
+            language.load(":/languages/language_" + QLocale::system().name() + ".qm");
+            a.installTranslator(&language);
+
+            qDebug() << "Language loaded: qrc://languages/language_" + QLocale::system().name() + ".qm";
+            break;
+        }
+    }
 
     MainWindow w;
     w.show();

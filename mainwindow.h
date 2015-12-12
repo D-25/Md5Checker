@@ -22,15 +22,12 @@ private slots:
 
     void on_abortButton_clicked();
 
-    void on_SpeedSelect_currentIndexChanged(int index);
-
-
     void disableAll();
     void enableAll();
 
     void on_pushButton_clicked();
 
-    void on_MetodSelect_currentIndexChanged(int index);
+    void on_comboBox_currentIndexChanged(int index);
 
 private:
     Ui::MainWindow *ui;
