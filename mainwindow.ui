@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>489</width>
-    <height>218</height>
+    <height>325</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -15,18 +15,6 @@
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>489</width>
-    <height>218</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>489</width>
-    <height>218</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
@@ -38,7 +26,7 @@
       <x>10</x>
       <y>0</y>
       <width>471</width>
-      <height>46</height>
+      <height>50</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -65,13 +53,6 @@
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="pushButton">
-         <property name="text">
-          <string>IMPOSTAZIONI</string>
-         </property>
-        </widget>
-       </item>
       </layout>
      </item>
     </layout>
@@ -82,7 +63,7 @@
       <x>10</x>
       <y>110</y>
       <width>471</width>
-      <height>103</height>
+      <height>187</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -137,26 +118,8 @@
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
         <widget class="QProgressBar" name="checkingBar">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="autoFillBackground">
-          <bool>false</bool>
-         </property>
-         <property name="maximum">
-          <number>0</number>
-         </property>
          <property name="value">
-          <number>-1</number>
-         </property>
-         <property name="textVisible">
-          <bool>false</bool>
-         </property>
-         <property name="invertedAppearance">
-          <bool>false</bool>
+          <number>24</number>
          </property>
         </widget>
        </item>
@@ -181,7 +144,7 @@
       <x>10</x>
       <y>80</y>
       <width>471</width>
-      <height>25</height>
+      <height>32</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -209,7 +172,7 @@
       <x>10</x>
       <y>50</y>
       <width>471</width>
-      <height>22</height>
+      <height>28</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -227,35 +190,130 @@
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Metodo :</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboBox">
-       <item>
-        <property name="text">
-         <string>MD5</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>SHA-1</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>SHA-256</string>
-        </property>
-       </item>
-      </widget>
-     </item>
     </layout>
    </widget>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>489</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="action_Open"/>
+    <addaction name="action_OpenCompare"/>
+    <addaction name="action_Check"/>
+    <addaction name="separator"/>
+    <addaction name="action_Settings"/>
+    <addaction name="separator"/>
+    <addaction name="action_Exit"/>
+   </widget>
+   <widget class="QMenu" name="menuD_25">
+    <property name="title">
+     <string>&amp;D-25</string>
+    </property>
+    <addaction name="action_D25Website"/>
+    <addaction name="action_D25FacebookPage"/>
+   </widget>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>?</string>
+    </property>
+    <addaction name="action_About"/>
+    <addaction name="separator"/>
+    <addaction name="action_Github"/>
+    <addaction name="action_Sourceforge"/>
+    <addaction name="separator"/>
+    <addaction name="action_Statistics"/>
+    <addaction name="action_Credits"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuD_25"/>
+   <addaction name="menu"/>
+  </widget>
+  <action name="action_Settings">
+   <property name="text">
+    <string>&amp;Impostazioni...</string>
+   </property>
+  </action>
+  <action name="action_Open">
+   <property name="text">
+    <string>Seleziona &amp;File...</string>
+   </property>
+  </action>
+  <action name="action_Check">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Analizza</string>
+   </property>
+  </action>
+  <action name="action_Exit">
+   <property name="text">
+    <string>&amp;Esci</string>
+   </property>
+  </action>
+  <action name="action_D25Website">
+   <property name="text">
+    <string>Il nostro &amp;sito!</string>
+   </property>
+   <property name="toolTip">
+    <string>Il nostro sito!</string>
+   </property>
+  </action>
+  <action name="action_D25FacebookPage">
+   <property name="text">
+    <string>Su &amp;Facebook!</string>
+   </property>
+  </action>
+  <action name="action_About">
+   <property name="text">
+    <string>&amp;Informazioni su...</string>
+   </property>
+   <property name="toolTip">
+    <string>Informazioni su</string>
+   </property>
+  </action>
+  <action name="action_Credits">
+   <property name="text">
+    <string>&amp;Crediti</string>
+   </property>
+  </action>
+  <action name="action_CheckUpdate">
+   <property name="text">
+    <string>Controlla &amp;Aggiornamenti</string>
+   </property>
+  </action>
+  <action name="action_Github">
+   <property name="text">
+    <string>MD5Checker su &amp;GitHub</string>
+   </property>
+  </action>
+  <action name="action_Sourceforge">
+   <property name="text">
+    <string>MD5Checker su &amp;SourceForge</string>
+   </property>
+  </action>
+  <action name="action_OpenCompare">
+   <property name="text">
+    <string>Apri un File per la &amp;comparazione...</string>
+   </property>
+  </action>
+  <action name="action_Statistics">
+   <property name="text">
+    <string>&amp;Statistiche</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>

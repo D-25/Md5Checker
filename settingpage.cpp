@@ -99,7 +99,8 @@ void SettingPage::on_info_freezeStatus_clicked()
                                                         "<li>Il sistema potrebbe consigliare di chiudere l'applicazione: nella maggior parte dei casi, dovresti rifiutare.</li>"
                                                         "<li>Lo status di congelamento verrà applicato solo quando analizzerai File molto grandi.</li>"
                                                         "<li>Con lo status di congelamento, non potrai annullare un'analisi avviata. Tuttavia, ti sarà chiesta una conferma prima di iniziare l'analisi.</li>"
-                                                        "<li>Applicare questo status <i>non</i> danneggerà i File analizzati.</li></ul>"));
+                                                        "<li>Applicare questo status <i>non</i> danneggerà i File analizzati.</li>"
+                                                        "<li>Con lo Status di Congelamento attivo, non potrai sapere a che percentuale si trova l'operazione.</li></ul>"));
 }
 
 void SettingPage::on_settings_Cancel_clicked()

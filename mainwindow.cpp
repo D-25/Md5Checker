@@ -3,12 +3,15 @@
 #include <QFileDialog>
 #include <QCryptographicHash>
 #include <QFile>
+#include <QtWinExtras/QWinTaskbarButton>
+#include <QtWinExtras/QWinTaskbarProgress>
 #include <QDragEnterEvent>
 #include <QMimeData>
 #include <QUrl>
 #include <QDebug>
 #include <QTranslator>
 #include <QSettings>
+#include <QTime>
 
 #include "settingpage.h"
 #include "dialogstyle.h"
@@ -25,8 +28,11 @@
  */
 
 bool aborted; // I know, this is ugly.
+
+bool checkAndCompare;
+QString fileNameCompare;
+
 int Speed = 262144;
-int MetodSelect = 0;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -55,6 +61,7 @@ void MainWindow::disableAll()
     ui->fileSelectBrowse->setEnabled(false);
     ui->comparationCheck->setEnabled(false);
     ui->comparationString->setEnabled(false);
+    ui->menuBar->setEnabled(false);
 }
 
 void MainWindow::enableAll()
@@ -64,6 +71,7 @@ void MainWindow::enableAll()
     ui->fileSelectBrowse->setEnabled(true);
     ui->comparationCheck->setEnabled(true);
     ui->comparationString->setEnabled(true);
+    ui->menuBar->setEnabled(true);
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)
@@ -94,7 +102,7 @@ void MainWindow::dropEvent(QDropEvent *event)
 
         droppedLocation.remove(QString("file:///")); // We need the file:/// prefix to mantain URL-style
                                                      // and block all unknown position.
-#if defined(linux) || defined(unix)
+#if defined(linux) || defined(unix) // On Linux/Unix system add '/' to mantain file system structure. It works on Mac?
         droppedLocation.insert(0, "/");
         qDebug() << "*** Linux/Unix system detected: mantaining file system structure.";
 #endif
@@ -110,11 +118,20 @@ void MainWindow::on_fileSelectBrowse_clicked()
 
     QString stringFileName = QFileDialog::getOpenFileName(this, tr("Apri"), "", tr("Tutti (*.*)"));
     if (stringFileName.isNull() || stringFileName.isEmpty())
-    { }
+    {
+        if (checkAndCompare == true) { checkAndCompare = false; } // Make global value deactivated, so Comparation Mode won't start.
+    }
+
     else
     {
         ui->startCheck->setEnabled(true);
-        ui->fileSelectLocation->setText(stringFileName);
+        ui->action_Check->setEnabled(true);
+        if (checkAndCompare == false) { ui->fileSelectLocation->setText(stringFileName); }
+        else
+        {
+            fileNameCompare = stringFileName; // Using global value.
+            on_startCheck_clicked();
+        }
     }
 }
 
@@ -126,21 +143,22 @@ void MainWindow::on_startCheck_clicked()
     // Select file, initialize the byteload and start processing the file, disabling the main window for security purpose.
     // Reached the ending of file, the checksum is showed to user.
 
-    QCryptographicHash CheckMD5(QCryptographicHash::Md5);
-    QCryptographicHash CheckSha1(QCryptographicHash::Sha1);
-    QCryptographicHash CheckSha256(QCryptographicHash::Sha256);
-    QString Result;
+    // Please note we use checkAndCompare boolean global value for the function inside the 'File' menu.
+    // I can't make a function with variables because QT uses a closed system with signal slots, so I use this workaround.
+    // If you have a better method, let me know on GitHub.
+
     QSettings settings("D-25" ,"MD5Checker");
+    QTime timeCount;
 
     int byteCheckSelected = settings.value("byteCheck", 262144).toInt();
     bool getFrozenStatus = settings.value("applyFrozenStatus", 0).toBool();
 
     qDebug() << "Settings loaded: " << "byteCheckSelected..." << byteCheckSelected << "getFrozenStatus..." << getFrozenStatus;
-
-
     QString fileName = ui->fileSelectLocation->text();
-    QFile fileSelected(fileName);
 
+    if (checkAndCompare == true) { fileName = fileNameCompare; qDebug() << "*** STARTING COMPARATION MODE ***"; }
+
+    QFile fileSelected(fileName);
 
     // If user want to start checking between two MD5s, it start to check if the MD5 inputed
     // follow the HEX-system. If not, checking won't start.
@@ -169,25 +187,65 @@ void MainWindow::on_startCheck_clicked()
         }
     }
 
-    fileSelected.open(QFile::ReadOnly);
-    aborted = false;
-    while(!fileSelected.atEnd())
-    {
-        switch(MetodSelect) {
-        case 0:
-            CheckMD5.addData(fileSelected.read(byteCheckSelected));
-            break;
-        case 1:
-            CheckSha1.addData(fileSelected.read(byteCheckSelected));
-            break;
-        case 2:
-            CheckSha256.addData(fileSelected.read(byteCheckSelected));
-            break;
-        }
+    QCryptographicHash checkProcess(QCryptographicHash::Md5);
 
-        if (getFrozenStatus == false) { QCoreApplication::processEvents(); }
+        timeCount.start();
+        fileSelected.open(QFile::ReadOnly);
 
-        ui->checkInfo->setText(tr("Analisi dell'impronta del file selezionato in corso..."));
+        ui->checkingBar->setMaximum(100);
+
+        taskbarButton = new QWinTaskbarButton(this);
+        taskbarButton->setWindow(this->windowHandle());
+        //taskbarButton->setOverlayIcon(QIcon(":/overlay"));
+
+        taskbarProgress = taskbarButton->progress();
+        taskbarProgress->setVisible(true);
+        taskbarProgress->setMaximum(100);
+
+
+        qint64 byteReaden = 0;
+        qint64 fileSize = fileSelected.size();
+
+        int fileSizeKB = fileSize / 1024;
+        int fileSizeMB = fileSizeKB / 1024;
+        int fileSizeGB = fileSizeMB / 1024;
+
+        QString checkText1 = tr("Analisi del File selezionato in corso...");
+        QString checkText2 = tr("Dati analizzati");
+
+        aborted = false;
+        while(!fileSelected.atEnd())
+        {
+            checkProcess.addData(fileSelected.read(byteCheckSelected));
+            byteReaden = byteReaden + byteCheckSelected; // Byte Readen by application is based of current byteCheckSelected.
+
+
+
+            int byteReadenKB = byteReaden / 1024;
+            int byteReadenMB = byteReadenKB / 1024;
+            int byteReadenGB = byteReadenMB / 1024;
+
+            ui->checkingBar->setValue((int)((byteReaden * 100) / fileSize)); // All numbers is converted for maximum 100%.
+            taskbarProgress->setValue((int)((byteReaden * 100) / fileSize));
+            taskbarProgress->show();
+
+            if (getFrozenStatus == false) { QCoreApplication::processEvents(); }
+
+            if (fileSizeMB < 10) // Show in Kilobyte
+            {
+
+                ui->checkInfo->setText(tr("%1<br/> <b>%2:</b> %3 KB su %4 KB").arg(checkText1).arg(checkText2).arg(byteReadenKB).arg(fileSizeKB));
+            }
+
+            else if (fileSizeGB < 2) // Show in Megabyte
+            {
+                ui->checkInfo->setText(tr("%1<br/> <b>%2:</b> %3 MB su %4 MB").arg(checkText1).arg(checkText2).arg(byteReadenMB).arg(fileSizeMB));
+            }
+
+            else // Show Megabyte + Gigabyte
+            {
+                ui->checkInfo->setText(tr("%1<br/> <b>%2:</b> %3 MB (%4 GB) su %5 MB (%6 GB)").arg(checkText1).arg(checkText2).arg(byteReadenMB).arg(byteReadenGB).arg(fileSizeMB).arg(fileSizeGB));
+            }
 
             ui->checkingBar->setVisible(true);
             ui->abortButton->setVisible(true);
@@ -202,38 +260,64 @@ void MainWindow::on_startCheck_clicked()
         }
 
         enableAll();
-        QByteArray md5Data;
 
-        switch(MetodSelect) {
-        case 0:
-            md5Data = CheckMD5.result();
-            break;
-        case 1:
-            md5Data = CheckSha1.result();
-            break;
-        case 2:
-            md5Data = CheckSha256.result();
-            break;
-        }
-
-        Result = md5Data.toHex();
+        taskbarProgress->setValue(0);
         ui->checkingBar->setVisible(false);
         ui->abortButton->setVisible(false);
+        QByteArray md5Data = checkProcess.result();
+        QString md5DataHEX = md5Data.toHex();
 
 
         if (aborted == false)
         {
-            ui->checkInfo->setText(tr("impronta del File scelto: %1").arg(Result));
+            qDebug() << "Checking done! Time Elapsed (ms): " << timeCount.elapsed();
+            int timeSecond = timeCount.elapsed() / 1000;
+            int timeMinute = (timeSecond / 60) % 60;
+            int timeHour = timeSecond / 3600;
+            timeSecond = timeSecond % 60;
 
-            if (ui->comparationCheck->isChecked())
+            QString timeString = (QString("%1:%2:%3")
+                                .arg(timeHour, 2, 10, QLatin1Char('0'))
+                                .arg(timeMinute, 2, 10, QLatin1Char('0'))
+                                .arg(timeSecond, 2, 10, QLatin1Char('0')));
+
+            if (timeString == "00:00:00")
             {
-                comparationStart(ui->comparationString->text(), Result); // Check between two string, one inserted by user.
+                timeString = tr("meno di un secondo");
+            }
+
+            if (checkAndCompare == false)
+            {
+                ui->checkInfo->setText(tr("<b>MD5 del File scelto:</b> %1<br/><b>Tempo trascorso:</b> %2").arg(md5DataHEX, timeString));
+
+                if (ui->comparationCheck->isChecked())
+                {
+                    comparationStart(ui->comparationString->text(), md5DataHEX); // Check between two string, one inserted by user.
+                }
+            }
+
+            else // COMPARATION MODE
+            {
+                ui->checkInfo->setText(tr("MD5 del File da comparare calcolato. Adesso scegli il File da comparare e avvia l'analisi."));
+
+                if (ui->fileSelectLocation->text().isNull() || ui->fileSelectLocation->text().isEmpty()) // Check if a File is selected,
+                                                                                                         // to make enabled START CHECK buttons.
+                {
+                    ui->startCheck->setEnabled(false);
+                    ui->action_Check->setEnabled(false);
+                }
+
+                ui->comparationCheck->setChecked(true);
+                ui->comparationString->setText(md5DataHEX);
+
+                checkAndCompare = false;
             }
         }
 
-        else
+        else // ABORTED
         {
                 ui->checkInfo->setText(tr("Operazione annullata dall'utente."));
+                if (checkAndCompare == true) { checkAndCompare = false; } // Make global value deactivated, so Comparation Mode won't start next time.
         }
 
         }
@@ -243,26 +327,26 @@ void MainWindow::on_abortButton_clicked()
     aborted = true;
 }
 
-void MainWindow::on_pushButton_clicked()
+// MENU BAR
+
+void MainWindow::on_action_Settings_triggered() // SETTINGS
 {
     SettingPage settings;
     settings.exec();
 }
 
-void MainWindow::on_comboBox_currentIndexChanged(int index)
+void MainWindow::on_action_Open_triggered() // OPEN (recall Browse button)
 {
-    switch(index){
-    case 0:
-        MetodSelect = 0;
-         qDebug() << "MD5"; //default
-        break;
-    case 1:
-        MetodSelect = 1;
-         qDebug() << "SHA-1";
-        break;
-    case 2:
-        MetodSelect = 2;
-         qDebug() << "SHA-256";
-        break;
-    }
+    on_fileSelectBrowse_clicked();
+}
+
+void MainWindow::on_action_Check_triggered() // CHECK (recall Start Check button)
+{
+    on_startCheck_clicked();
+}
+
+void MainWindow::on_action_OpenCompare_triggered() // Open & Compare (set TRUE the global value, then recall Browse button)
+{
+    checkAndCompare = true;
+    on_fileSelectBrowse_clicked();
 }

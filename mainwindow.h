@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QtWinExtras/QWinTaskbarButton>
+#include <QtWinExtras/QWinTaskbarProgress>
 
 namespace Ui {
 class MainWindow;
@@ -25,12 +27,18 @@ private slots:
     void disableAll();
     void enableAll();
 
-    void on_pushButton_clicked();
+    void on_action_Settings_triggered();
 
-    void on_comboBox_currentIndexChanged(int index);
+    void on_action_Open_triggered();
+
+    void on_action_Check_triggered();
+
+    void on_action_OpenCompare_triggered();
 
 private:
     Ui::MainWindow *ui;
+    QWinTaskbarButton *taskbarButton;
+    QWinTaskbarProgress *taskbarProgress;
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event);

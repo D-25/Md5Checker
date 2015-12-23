@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui winextras
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -31,3 +31,4 @@ RESOURCES += \
 
 TRANSLATIONS += \
     languages/lang_it.ts
+    languages/lang_en.ts
